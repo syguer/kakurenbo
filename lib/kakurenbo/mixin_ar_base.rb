@@ -33,9 +33,10 @@ module Kakurenbo
       # @note Restore to original model.
       def remodel_as_original
         if paranoid?
-          alias_method :delete,   :hard_delete
-          alias_method :destroy,  :hard_destroy
-          alias_method :destroy!, :hard_destroy!
+          alias_method :delete,     :hard_delete
+          alias_method :destroy,    :hard_destroy
+          alias_method :destroy!,   :hard_destroy!
+          alias_method :destroyed?, :hard_destroyed?
 
           define_singleton_method(:paranoid?) { false }
         end
@@ -51,9 +52,10 @@ module Kakurenbo
         )
 
         unless paranoid?
-          alias_method :hard_delete,   :delete
-          alias_method :hard_destroy,  :destroy
-          alias_method :hard_destroy!, :destroy!
+          alias_method :hard_delete,     :delete
+          alias_method :hard_destroy,    :destroy
+          alias_method :hard_destroy!,   :destroy!
+          alias_method :hard_destroyed?, :destroyed?
 
           class_attribute :kakurenbo_column
           include Kakurenbo::Core

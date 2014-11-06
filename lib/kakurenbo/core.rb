@@ -99,7 +99,11 @@ module Kakurenbo
     end
 
     def destroyed?
-      !send(kakurenbo_column).nil?
+      if @restoring_soft_destroyed_record
+        hard_destroyed?
+      else
+        hard_destroyed? || soft_destroyed?
+      end
     end
 
     def kakurenbo_column
@@ -122,7 +126,7 @@ module Kakurenbo
       with_transaction_returning_status do
         run_callbacks(:restore) do
           restore_associated_records if options[:recursive]
-          update_column kakurenbo_column, nil
+          restore_soft_destroyed_record
           self
         end
       end
@@ -136,6 +140,10 @@ module Kakurenbo
     # @return [self] self.
     def restore!(options = {:recursive => true})
       restore(options) || raise(ActiveRecord::RecordNotRestored)
+    end
+
+    def soft_destroyed?
+      !send(kakurenbo_column).nil?
     end
 
     private
@@ -163,6 +171,13 @@ module Kakurenbo
       dependent_association_scopes.each do |scope|
         scope.restore_all
       end
+    end
+
+    # Restore soft-delete record.
+    def restore_soft_destroyed_record
+      @restoring_soft_destroyed_record = true
+      update_column kakurenbo_column, nil
+      @restoring_soft_destroyed_record = false
     end
   end
 end
